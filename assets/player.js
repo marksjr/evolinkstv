@@ -54,12 +54,111 @@
         root.appendChild(box);
     }
 
-    function adblockActive() {
-        const bait = document.querySelector('.adsbox');
-        return !window.__adBaitLoaded
-            || !bait
-            || bait.offsetHeight === 0
-            || getComputedStyle(bait).display === 'none';
+    async function detectAdblock() {
+        // 1. Checagem de elemento isca estático pré-renderizado no HTML
+        const staticBait = document.getElementById('ad-banner')
+            || document.querySelector('.adsbygoogle')
+            || document.querySelector('.adsbox');
+
+        if (staticBait) {
+            const s = window.getComputedStyle(staticBait);
+            if (
+                staticBait.offsetParent === null ||
+                staticBait.offsetHeight === 0 ||
+                staticBait.offsetWidth === 0 ||
+                s.display === 'none' ||
+                s.visibility === 'hidden'
+            ) {
+                return true;
+            }
+        }
+
+        // 2. Criação dinâmica de elementos com seletores universais da EasyList
+        try {
+            const dynamicBait = document.createElement('div');
+            dynamicBait.className = 'ad-banner adsbygoogle pub_300x250 pub_728x90 text-ad textAd ad-unit';
+            dynamicBait.id = 'google-ads-test-banner';
+            dynamicBait.setAttribute('style', 'position:absolute !important; top:-9999px !important; left:-9999px !important; width:100px !important; height:100px !important; pointer-events:none !important;');
+            dynamicBait.innerHTML = '<ins class="adsbygoogle" style="display:block !important; width:100px !important; height:100px !important;" data-ad-client="ca-pub-1234567890123456"></ins>';
+            document.body.appendChild(dynamicBait);
+
+            // Aguarda 40ms para dar tempo aos motores cosméticos do Adblock (uBlock/ABP) injetarem regras
+            await new Promise((r) => setTimeout(r, 40));
+
+            const sDyn = window.getComputedStyle(dynamicBait);
+            const isBlocked = (
+                dynamicBait.offsetParent === null ||
+                dynamicBait.offsetHeight === 0 ||
+                dynamicBait.offsetWidth === 0 ||
+                sDyn.display === 'none' ||
+                sDyn.visibility === 'hidden'
+            );
+            dynamicBait.remove();
+
+            if (isBlocked) {
+                return true;
+            }
+        } catch (_) {}
+
+        // 3. Prova de Rede (Network Probe) - Bloqueada em 100% dos AdBlockers (uBlock, ABP, AdGuard, Brave, Opera)
+        try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 1200);
+
+            await fetch('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js', {
+                method: 'HEAD',
+                mode: 'no-cors',
+                cache: 'no-store',
+                signal: controller.signal
+            });
+            clearTimeout(timer);
+        } catch (err) {
+            if (err && err.name === 'AbortError') {
+                // Apenas timeout de conexão lenta, não bloqueio
+            } else {
+                return true;
+            }
+        }
+
+        // 4. Prova de Injeção de Script Tag Externa
+        try {
+            const scriptBlocked = await new Promise((resolve) => {
+                const s = document.createElement('script');
+                s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+                s.async = true;
+                let done = false;
+
+                s.onerror = () => {
+                    if (!done) {
+                        done = true;
+                        s.remove();
+                        resolve(true); // Bloqueado pelo AdBlock!
+                    }
+                };
+                s.onload = () => {
+                    if (!done) {
+                        done = true;
+                        s.remove();
+                        resolve(false);
+                    }
+                };
+                setTimeout(() => {
+                    if (!done) {
+                        done = true;
+                        s.remove();
+                        resolve(false);
+                    }
+                }, 500);
+
+                document.head.appendChild(s);
+            });
+
+            if (scriptBlocked) {
+                return true;
+            }
+        } catch (_) {}
+
+        return false;
     }
 
     function sandboxDetected() {
@@ -464,7 +563,7 @@
     }
 
     decryptPayload(blob, keyB64)
-        .then((data) => {
+        .then(async (data) => {
             if (!data || !data.u) throw new Error('PLAYER_INDISPONIVEL');
 
             if (data.s && sandboxDetected()) {
@@ -472,9 +571,12 @@
                 return;
             }
 
-            if (data.a && adblockActive()) {
-                showAdblockWarning(data.msg);
-                return;
+            if (data.a) {
+                const isBlocked = await detectAdblock();
+                if (isBlocked) {
+                    showAdblockWarning(data.msg);
+                    return;
+                }
             }
 
             if (data.i) {
@@ -488,6 +590,19 @@
             const pType = data.t === 'native' ? 'native' : 'iframe';
             mountPlayerByType(data.u, data.b || '', data.k || '', pType);
             addWatermark(data.w || '');
+
+            // Monitoramento contínuo: se o visitante ativar o Adblock durante a transmissão
+            if (data.a) {
+                setInterval(async () => {
+                    const isLateBlocked = await detectAdblock();
+                    if (isLateBlocked) {
+                        if (window._evoPlayer && typeof window._evoPlayer.destroy === 'function') {
+                            try { window._evoPlayer.destroy(); } catch (_) {}
+                        }
+                        showAdblockWarning(data.msg);
+                    }
+                }, 3500);
+            }
         })
         .catch((error) => {
             if (error && error.message === 'WEB_CRYPTO') {

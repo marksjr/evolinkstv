@@ -289,7 +289,7 @@ $useLocalVendor = file_exists($vendorDir . '/clappr.min.js')
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex, nofollow, noarchive">
     <title><?= e($brandName) ?></title>
-    <link rel="stylesheet" href="assets/player.css?v=2">
+    <link rel="stylesheet" href="assets/player.css?v=3">
     <?php if ($isNativePlayer): ?>
         <?php if ($useLocalVendor): ?>
             <script src="assets/vendor/clappr.min.js"></script>
@@ -320,7 +320,9 @@ $useLocalVendor = file_exists($vendorDir . '/clappr.min.js')
         <div class="error">Ative o JavaScript para assistir.</div>
     </noscript>
 
-    <div class="adsbox ad-banner" aria-hidden="true">&nbsp;</div>
+    <div id="ad-banner" class="adsbox ad-banner ad-unit google-ad text-ad pub_300x250 pub_728x90" style="position:absolute;top:-9999px;left:-9999px;width:100px;height:100px;" aria-hidden="true">
+        <ins class="adsbygoogle" style="display:block;width:100px;height:100px;" data-ad-client="ca-pub-1234567890123456"></ins>
+    </div>
 
     <script src="assets/ads-bait.js"></script>
 
@@ -329,6 +331,6 @@ $useLocalVendor = file_exists($vendorDir . '/clappr.min.js')
         <script disable-devtool-auto src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"></script>
     <?php endif; ?>
 
-    <script src="assets/player.js?v=2"></script>
+    <script src="assets/player.js?v=3"></script>
 </body>
 </html>
