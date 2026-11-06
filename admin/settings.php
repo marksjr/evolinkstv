@@ -181,6 +181,20 @@ admin_header('Configurações', $user);
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="save_options">
 
+    <div class="row-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--line);">
+        <div class="row-actions">
+            <button class="btn primary" type="submit">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <span>Salvar configurações</span>
+            </button>
+            <a class="btn ghost" href="channels.php">Voltar aos canais</a>
+        </div>
+    </div>
+
     <div class="check-grid">
         <label class="check">
             <input type="checkbox" name="protect_iframe" value="1" <?= $current['protect_iframe'] === '1' ? 'checked' : '' ?>>
@@ -430,7 +444,14 @@ admin_header('Configurações', $user);
     </div>
 
     <div class="row-actions">
-        <button class="btn primary" type="submit">Salvar configurações</button>
+        <button class="btn primary" type="submit">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            <span>Salvar configurações</span>
+        </button>
         <a class="btn ghost" href="channels.php">Voltar aos canais</a>
     </div>
 </form>

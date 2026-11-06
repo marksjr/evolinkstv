@@ -182,6 +182,30 @@ admin_header($id > 0 ? 'Editar canal' : 'Novo canal', $user);
     <?= csrf_field() ?>
     <input type="hidden" name="id" value="<?= (int)$channel['id'] ?>">
 
+    <div class="row-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--line);">
+        <div class="row-actions">
+            <button class="btn primary" type="submit">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <span>Salvar canal</span>
+            </button>
+            <a class="btn ghost" href="channels.php">Cancelar</a>
+        </div>
+        <?php if ($channel['slug'] !== ''): ?>
+            <a class="preview-link" href="<?= e($previewUrl) ?>" target="_blank" rel="noopener">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+                <span>Abrir prévia</span>
+            </a>
+        <?php endif; ?>
+    </div>
+
     <div class="form-grid">
         <div class="field">
             <label for="name">Nome do canal</label>
@@ -307,7 +331,14 @@ admin_header($id > 0 ? 'Editar canal' : 'Novo canal', $user);
     <?php endif; ?>
 
     <div class="row-actions">
-        <button class="btn primary" type="submit">Salvar canal</button>
+        <button class="btn primary" type="submit">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            <span>Salvar canal</span>
+        </button>
         <a class="btn ghost" href="channels.php">Cancelar</a>
     </div>
 </form>
