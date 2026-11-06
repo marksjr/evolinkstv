@@ -75,44 +75,103 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    padding: 24px;
+    padding: 20px;
     text-align: center;
-    background: rgba(5, 8, 14, 0.98);
-    color: #f2f5f8;
-    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-    backdrop-filter: blur(10px);
+    background: #000000;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+.blocker-card {
+    width: 100%;
+    max-width: 440px;
+    padding: clamp(24px, 5vw, 36px) clamp(20px, 4vw, 32px);
+    background: #070b12;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9);
+}
+
+.blocker-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: rgba(0, 112, 243, 0.12);
+    border: 1px solid rgba(0, 112, 243, 0.3);
+    color: #0099ff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.blocker-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: rgba(0, 112, 243, 0.12);
+    border: 1px solid rgba(0, 112, 243, 0.25);
+    color: #38bdf8;
+    margin-bottom: 12px;
 }
 
 .error {
-    color: #ffb3b3;
+    color: #ffffff;
 }
 
 .blocker h2 {
-    margin: 0;
-    font-size: 20px;
-    line-height: 1.25;
+    margin: 0 0 10px;
+    font-size: clamp(19px, 4vw, 23px);
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
 }
 
 .blocker p {
     max-width: 380px;
-    margin: 0;
-    color: #9aa4b2;
+    margin: 0 0 22px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #e2e8f0;
 }
 
 .blocker button {
-    margin-top: 8px;
-    padding: 10px 16px;
-    border: 0;
-    border-radius: 8px;
-    background: #ff4b3a;
-    color: #fff;
-    font: 600 14px ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 190px;
+    padding: 12px 28px;
+    border: none;
+    border-radius: 10px;
+    background: #0070f3;
+    background: linear-gradient(135deg, #0070f3 0%, #0099ff 100%);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 14.5px;
     cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 112, 243, 0.4);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .blocker button:hover {
-    background: #ff6353;
+    background: linear-gradient(135deg, #005fd0 0%, #0088ee 100%);
+    box-shadow: 0 6px 24px rgba(0, 112, 243, 0.6);
+    transform: translateY(-1px);
+}
+
+.blocker button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 112, 243, 0.3);
 }
 
 .watermark {

@@ -289,7 +289,7 @@ $useLocalVendor = file_exists($vendorDir . '/clappr.min.js')
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex, nofollow, noarchive">
     <title><?= e($brandName) ?></title>
-    <link rel="stylesheet" href="assets/player.css?v=3">
+    <link rel="stylesheet" href="assets/player.css?v=4">
     <?php if ($isNativePlayer): ?>
         <?php if ($useLocalVendor): ?>
             <script src="assets/vendor/clappr.min.js"></script>
@@ -331,6 +331,6 @@ $useLocalVendor = file_exists($vendorDir . '/clappr.min.js')
         <script disable-devtool-auto src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"></script>
     <?php endif; ?>
 
-    <script src="assets/player.js?v=3"></script>
+    <script src="assets/player.js?v=4"></script>
 </body>
 </html>

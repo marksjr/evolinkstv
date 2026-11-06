@@ -209,8 +209,19 @@
         root.innerHTML = '';
         const msg = customMsg || {};
 
-        const box = document.createElement('div');
-        box.className = 'blocker';
+        const overlay = document.createElement('div');
+        overlay.className = 'blocker';
+
+        const card = document.createElement('div');
+        card.className = 'blocker-card';
+
+        const icon = document.createElement('div');
+        icon.className = 'blocker-icon';
+        icon.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>';
+
+        const badge = document.createElement('span');
+        badge.className = 'blocker-badge';
+        badge.textContent = 'Proteção de Iframe';
 
         const title = document.createElement('h2');
         title.textContent = msg.sb_t || 'Sandbox detectado';
@@ -220,19 +231,31 @@
 
         const button = document.createElement('button');
         button.type = 'button';
-        button.textContent = msg.sb_b || 'Recarregar';
+        button.innerHTML = '<span>' + (msg.sb_b || 'Recarregar') + '</span>';
         button.addEventListener('click', () => location.reload());
 
-        box.append(title, text, button);
-        root.appendChild(box);
+        card.append(icon, badge, title, text, button);
+        overlay.appendChild(card);
+        root.appendChild(overlay);
     }
 
     function showAdblockWarning(customMsg) {
         root.innerHTML = '';
         const msg = customMsg || {};
 
-        const box = document.createElement('div');
-        box.className = 'blocker';
+        const overlay = document.createElement('div');
+        overlay.className = 'blocker';
+
+        const card = document.createElement('div');
+        card.className = 'blocker-card';
+
+        const icon = document.createElement('div');
+        icon.className = 'blocker-icon';
+        icon.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+
+        const badge = document.createElement('span');
+        badge.className = 'blocker-badge';
+        badge.textContent = 'Anúncios Necessários';
 
         const title = document.createElement('h2');
         title.textContent = msg.ab_t || 'Desative o bloqueador de anúncios';
@@ -242,11 +265,12 @@
 
         const button = document.createElement('button');
         button.type = 'button';
-        button.textContent = msg.ab_b || 'Já desativei — recarregar';
+        button.innerHTML = '<span>' + (msg.ab_b || 'Já desativei — recarregar') + '</span>';
         button.addEventListener('click', () => location.reload());
 
-        box.append(title, text, button);
-        root.appendChild(box);
+        card.append(icon, badge, title, text, button);
+        overlay.appendChild(card);
+        root.appendChild(overlay);
     }
 
     function inspectProtection(redirectUrl, customMsg) {
