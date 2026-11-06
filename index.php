@@ -204,17 +204,22 @@ if (!$isPreview) {
             exit;
         }
 
+        $dirTitle   = ($v = trim(setting($pdo, 'msg_direct_title', ''))) !== '' ? $v : 'Acesso Não Permitido';
+        $dirDesc    = ($v = trim(setting($pdo, 'msg_direct_desc', ''))) !== '' ? $v : 'Este player não pode ser aberto diretamente na barra do navegador. Assista através do site oficial incorporado.';
+        $unauthTitle = ($v = trim(setting($pdo, 'msg_unauthorized_title', ''))) !== '' ? $v : 'Acesso não autorizado';
+        $unauthDesc  = ($v = trim(setting($pdo, 'msg_unauthorized_desc', ''))) !== '' ? $v : 'A reprodução deste canal é restrita a domínios previamente autorizados.';
+
         $badge = $denyReason === 'direct'
-            ? setting($pdo, 'msg_direct_title', 'Acesso Não Permitido')
+            ? $dirTitle
             : 'Acesso Restrito · 403';
 
         $title = $denyReason === 'direct'
-            ? setting($pdo, 'msg_direct_title', 'Acesso Não Permitido')
-            : setting($pdo, 'msg_unauthorized_title', 'Acesso não autorizado');
+            ? $dirTitle
+            : $unauthTitle;
 
         $msgText = $denyReason === 'direct'
-            ? setting($pdo, 'msg_direct_desc', 'Este player não pode ser aberto diretamente na barra do navegador. Assista através do site oficial incorporado.')
-            : setting($pdo, 'msg_unauthorized_desc', 'A reprodução deste canal é restrita a domínios previamente autorizados.');
+            ? $dirDesc
+            : $unauthDesc;
 
         render_player_error(403, $badge, $title, $msgText, $redirectUrl, $brandName);
     }
@@ -264,13 +269,13 @@ $payload = [
     'r'   => valid_http_url($redirectUrl) ? $redirectUrl : '',
     'ads' => $clientAds,
     'msg' => [
-        'sb_t' => setting($pdo, 'msg_sandbox_title', 'Sandbox detectado'),
-        'sb_d' => setting($pdo, 'msg_sandbox_desc', 'Este player não funciona dentro de um iframe com atributos de restrição (sandbox). Remova o sandbox para continuar.'),
-        'sb_b' => setting($pdo, 'msg_sandbox_button', 'Recarregar'),
-        'ab_t' => setting($pdo, 'msg_adblock_title', 'Desative o bloqueador de anúncios'),
-        'ab_d' => setting($pdo, 'msg_adblock_desc', 'Este player não funciona com AdBlock ativo. Desative o bloqueador para continuar.'),
-        'ab_b' => setting($pdo, 'msg_adblock_button', 'Já desativei — recarregar'),
-        'in_t' => setting($pdo, 'msg_inspect_title', 'Inspeção não permitida.'),
+        'sb_t' => ($v = trim(setting($pdo, 'msg_sandbox_title', ''))) !== '' ? $v : 'Sandbox detectado',
+        'sb_d' => ($v = trim(setting($pdo, 'msg_sandbox_desc', ''))) !== '' ? $v : 'Este player não funciona dentro de um iframe com atributos de restrição (sandbox). Remova o sandbox para continuar.',
+        'sb_b' => ($v = trim(setting($pdo, 'msg_sandbox_button', ''))) !== '' ? $v : 'Recarregar',
+        'ab_t' => ($v = trim(setting($pdo, 'msg_adblock_title', ''))) !== '' ? $v : 'Desative o bloqueador de anúncios',
+        'ab_d' => ($v = trim(setting($pdo, 'msg_adblock_desc', ''))) !== '' ? $v : 'Este player não funciona com AdBlock ativo. Desative o bloqueador para continuar.',
+        'ab_b' => ($v = trim(setting($pdo, 'msg_adblock_button', ''))) !== '' ? $v : 'Já desativei — recarregar',
+        'in_t' => ($v = trim(setting($pdo, 'msg_inspect_title', ''))) !== '' ? $v : 'Inspeção não permitida.',
     ],
 ];
 

@@ -225,7 +225,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !$isLocked) {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             ");
 
-            // 4. Configurações padrão de segurança
+            // 4. Configurações padrão de segurança e mensagens white-label
             $defaultSettings = [
                 ['protect_iframe', '1'],
                 ['block_direct_access', '1'],
@@ -236,6 +236,17 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !$isLocked) {
                 ['redirect_url', ''],
                 ['watermark_text', ''],
                 ['player_brand_name', 'Ao Vivo'],
+                ['msg_adblock_title', 'Desative o bloqueador de anúncios'],
+                ['msg_adblock_desc', 'Este player não funciona com AdBlock ativo. Desative o bloqueador para continuar.'],
+                ['msg_adblock_button', 'Já desativei — recarregar'],
+                ['msg_sandbox_title', 'Sandbox detectado'],
+                ['msg_sandbox_desc', 'Este player não funciona dentro de um iframe com atributos de restrição (sandbox). Remova o sandbox para continuar.'],
+                ['msg_sandbox_button', 'Recarregar'],
+                ['msg_inspect_title', 'Inspeção não permitida.'],
+                ['msg_direct_title', 'Acesso Não Permitido'],
+                ['msg_direct_desc', 'Este player não pode ser aberto diretamente na barra do navegador. Assista através do site oficial incorporado.'],
+                ['msg_unauthorized_title', 'Acesso não autorizado'],
+                ['msg_unauthorized_desc', 'A reprodução deste canal é restrita a domínios previamente autorizados.'],
                 ['player_ads_code', ''],
             ];
             $stmtSet = $pdo->prepare('INSERT IGNORE INTO `settings` (`setting_key`, `setting_value`) VALUES (?, ?)');
