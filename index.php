@@ -139,7 +139,7 @@ function render_player_error(int $code, string $badge, string $title, string $me
 }
 
 $slug = isset($_GET['v']) && is_string($_GET['v'])
-    ? strtolower(trim($_GET['v']))
+    ? trim($_GET['v'])
     : '';
 
 if (!valid_slug($slug)) {

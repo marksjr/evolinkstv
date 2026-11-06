@@ -43,7 +43,7 @@ $errors = [];
 if (is_post()) {
     csrf_check();
 
-    $channel['slug'] = strtolower(input('slug'));
+    $channel['slug'] = trim(input('slug'));
     $channel['name'] = input('name');
     $channel['url'] = input('url');
     $channel['url_backup'] = input('url_backup');
@@ -56,11 +56,11 @@ if (is_post()) {
     $channel['active'] = isset($_POST['active']) ? 1 : 0;
 
     if ($channel['slug'] === '') {
-        $channel['slug'] = slugify($channel['name']);
+        $channel['slug'] = slugify_camel($channel['name']);
     }
 
     if (!valid_slug($channel['slug'])) {
-        $errors[] = 'Slug inválido. Use letras minúsculas, números, hífen ou underline (1 a 64 caracteres).';
+        $errors[] = 'Slug inválido. Use letras, números, hífen ou underline (1 a 64 caracteres).';
     }
 
     if ($channel['name'] === '' || mb_strlen($channel['name']) > 120) {
@@ -218,7 +218,7 @@ admin_header($id > 0 ? 'Editar canal' : 'Novo canal', $user);
             <input id="slug" name="slug" type="text" maxlength="64"
                    value="<?= e($channel['slug']) ?>"
                    placeholder="espn" data-slug-target>
-            <p class="hint">Ex.: <code>espn</code> → <code>?v=espn</code></p>
+            <p class="hint">Ex.: <code>espn</code> → <code>?v=espn</code> ou <code>bandSportsAlt2</code> → <code>?v=bandSportsAlt2</code></p>
         </div>
     </div>
 

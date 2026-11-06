@@ -74,24 +74,125 @@ function channel_slug_exists(PDO $pdo, string $slug, ?int $ignoreId = null): boo
  * @param array<string> $reservedSlugs Slugs já reservados no lote atual em memória
  * @return string
  */
+/**
+ * Resolve duplicidade de canal atribuindo nome sequencial "Canal Alt X" e slug "canalAltX" (camelCase).
+ * Exemplo:
+ * ESPN -> espn
+ * ESPN (duplicado) -> ESPN Alt 2 -> espnAlt2
+ * BandSports (duplicado) -> BandSports Alt 2 -> bandSportsAlt2
+ *
+ * @param PDO $pdo
+ * @param string $rawName Nome do canal (ex: "ESPN", "BandSports")
+ * @param string $rawSlug Slug sugerido ou base (ex: "espn", "bandSports")
+ * @param int|null $ignoreId
+ * @param array<string> $reservedSlugs Slugs já reservados no lote atual em memória
+ * @return array{name: string, slug: string, is_alt: bool, base_name: string, base_slug: string, alt_number: int}
+ */
+function resolve_channel_duplicate(
+    PDO $pdo,
+    string $rawName,
+    string $rawSlug = '',
+    ?int $ignoreId = null,
+    array $reservedSlugs = []
+): array {
+    $rawName = trim($rawName);
+    if ($rawName === '') {
+        $rawName = 'Canal';
+    }
+
+    // Extrai o nome base limpo sem sufixo "Alt \d+" prévio
+    $baseName = $rawName;
+    if (preg_match('/^(.*?)(?:\s+[-_]?\s*Alt\s*\d+)$/i', $rawName, $nm)) {
+        $clean = trim($nm[1]);
+        if ($clean !== '') {
+            $baseName = $clean;
+        }
+    }
+
+    // Determina o base slug em camelCase
+    if ($rawSlug !== '') {
+        $baseSlug = slugify_camel($rawSlug);
+    } else {
+        $baseSlug = slugify_camel($baseName);
+    }
+
+    // Se o baseSlug já tiver sufixo Alt\d+, remove para obter o slug base raiz
+    if (preg_match('/^(.*?)(?:Alt\d+)$/i', $baseSlug, $sm)) {
+        $cleanSlug = trim($sm[1]);
+        if ($cleanSlug !== '') {
+            $baseSlug = $cleanSlug;
+        }
+    }
+
+    // Verifica se o slug base já existe no lote em memória ou no banco
+    $baseExists = in_array($baseSlug, $reservedSlugs, true) || channel_slug_exists($pdo, $baseSlug, $ignoreId);
+
+    if (!$baseExists) {
+        return [
+            'name'        => $baseName,
+            'slug'        => $baseSlug,
+            'is_alt'      => false,
+            'base_name'   => $baseName,
+            'base_slug'   => $baseSlug,
+            'alt_number'  => 1,
+        ];
+    }
+
+    // Se já existe, busca o próximo sufixo Alt sequencial (Alt 2, Alt 3...)
+    for ($i = 2; $i <= 9999; $i++) {
+        $candidateSlug = $baseSlug . 'Alt' . $i;
+        if (!in_array($candidateSlug, $reservedSlugs, true) && !channel_slug_exists($pdo, $candidateSlug, $ignoreId)) {
+            return [
+                'name'        => $baseName . ' Alt ' . $i,
+                'slug'        => $candidateSlug,
+                'is_alt'      => true,
+                'base_name'   => $baseName,
+                'base_slug'   => $baseSlug,
+                'alt_number'  => $i,
+            ];
+        }
+    }
+
+    $fallbackNum = time();
+    return [
+        'name'        => $baseName . ' Alt ' . $fallbackNum,
+        'slug'        => $baseSlug . 'Alt' . $fallbackNum,
+        'is_alt'      => true,
+        'base_name'   => $baseName,
+        'base_slug'   => $baseSlug,
+        'alt_number'  => $fallbackNum,
+    ];
+}
+
+/**
+ * Encontra um slug único no banco aplicando regra camelCase e alternativas Alt2, Alt3...
+ *
+ * @param PDO $pdo
+ * @param string $baseSlug
+ * @param int|null $ignoreId
+ * @param array<string> $reservedSlugs Slugs já reservados no lote atual em memória
+ * @return string
+ */
 function resolve_unique_channel_slug(
     PDO $pdo,
     string $baseSlug,
     ?int $ignoreId = null,
     array $reservedSlugs = []
 ): string {
-    $baseSlug = strtolower(trim($baseSlug));
+    $baseSlug = trim($baseSlug);
     if ($baseSlug === '') {
         $baseSlug = 'canal';
     }
+
+    $baseSlug = slugify_camel($baseSlug);
 
     // Se nem no banco nem no lote em memória existir, pode usar diretamente
     if (!in_array($baseSlug, $reservedSlugs, true) && !channel_slug_exists($pdo, $baseSlug, $ignoreId)) {
         return $baseSlug;
     }
 
-    // Se o slug já termina em op\d+, extrai o prefixo original e o número inicial
-    if (preg_match('/^(.*)op(\d+)$/i', $baseSlug, $matches)) {
+    // Se o slug já termina em Alt\d+ ou op\d+, extrai o prefixo original e o número inicial
+    if (preg_match('/^(.*?)(?:Alt|op)(\d+)$/i', $baseSlug, $matches)) {
         $root = $matches[1];
         $start = max(2, (int)$matches[2] + 1);
     } else {
@@ -100,21 +201,21 @@ function resolve_unique_channel_slug(
     }
 
     for ($i = $start; $i <= 9999; $i++) {
-        $candidate = $root . 'op' . $i;
+        $candidate = $root . 'Alt' . $i;
         if (!in_array($candidate, $reservedSlugs, true) && !channel_slug_exists($pdo, $candidate, $ignoreId)) {
             return $candidate;
         }
     }
 
-    return $root . 'op' . time();
+    return $root . 'Alt' . time();
 }
 
 /**
- * Extrai o identificador ou slug provável de uma URL de streaming/player.
+ * Extrai o identificador ou slug provável de uma URL de streaming/player em camelCase.
  * Exemplos:
  * http://site.com/canal.php?id=sbt -> sbt
  * http://site.com/canais.php?v=espn2 -> espn2
- * http://site.com/embed/fox-sports -> fox-sports
+ * http://site.com/embed/band-sports -> bandSports
  */
 function extract_slug_from_url(string $url): string
 {
@@ -127,7 +228,7 @@ function extract_slug_from_url(string $url): string
         parse_str($parsed['query'], $query);
         foreach (['id', 'v', 'ch', 'channel', 'stream', 'c', 'name', 'slug'] as $param) {
             if (!empty($query[$param]) && is_string($query[$param])) {
-                return slugify($query[$param]);
+                return slugify_camel($query[$param]);
             }
         }
     }
@@ -139,7 +240,7 @@ function extract_slug_from_url(string $url): string
             // remove extensão ex: sbt.php -> sbt ou sbt.html -> sbt
             $last = preg_replace('/\.(php|html|htm|m3u8|mpd)$/i', '', $last) ?? $last;
             if ($last !== '' && !in_array(strtolower($last), ['canal', 'canais', 'player', 'play', 'live', 'stream', 'embed', 'tv'], true)) {
-                return slugify($last);
+                return slugify_camel($last);
             }
         }
     }
@@ -244,7 +345,7 @@ function parse_channel_lines(string $text): array
             $name = $extracted !== '' ? ucwords(str_replace(['-', '_'], ' ', $extracted)) : 'Canal ' . (count($channels) + 1);
         }
 
-        $slug = slugify($name);
+        $slug = slugify_camel($name);
         if ($slug === '' || $slug === 'canal') {
             $urlSlug = extract_slug_from_url($url);
             if ($urlSlug !== '') {
@@ -312,19 +413,15 @@ function import_channels_batch(PDO $pdo, array $items): array
                 $name = 'Canal ' . ($insertedCount + 1);
             }
 
-            if ($baseSlug === '') {
-                $baseSlug = slugify($name);
-            } else {
-                $baseSlug = slugify($baseSlug);
-            }
-
-            // Regra do usuário: Se já existir canal, vira op2, op3, etc.
-            $finalSlug = resolve_unique_channel_slug($pdo, $baseSlug, null, $reservedSlugs);
+            // Atribui nome sequencial (ex.: ESPN Alt 2) e slug camelCase (ex.: espnAlt2)
+            $resolution = resolve_channel_duplicate($pdo, $name, $baseSlug, null, $reservedSlugs);
+            $finalName = $resolution['name'];
+            $finalSlug = $resolution['slug'];
             $reservedSlugs[] = $finalSlug;
 
             $stmt->execute([
                 $finalSlug,
-                mb_substr($name, 0, 120),
+                mb_substr($finalName, 0, 120),
                 $url,
                 $urlBackup !== '' && valid_http_url($urlBackup) ? $urlBackup : null,
                 $category !== '' ? mb_substr($category, 0, 60) : null,
@@ -335,11 +432,11 @@ function import_channels_batch(PDO $pdo, array $items): array
 
             $insertedCount++;
             $processed[] = [
-                'name'        => $name,
+                'name'        => $finalName,
                 'slug'        => $finalSlug,
                 'url'         => $url,
                 'player_type' => $playerType,
-                'status'      => $finalSlug === $baseSlug ? 'criado' : 'alternativa (' . $finalSlug . ')',
+                'status'      => !$resolution['is_alt'] ? 'criado' : 'alternativa (' . $finalSlug . ')',
             ];
         }
 
@@ -371,11 +468,14 @@ Você é um assistente especializado em processamento e normalização de listas
 Analise a entrada de texto abaixo e extraia cada canal no formato JSON estrito.
 
 Regras obrigatórias:
-1. Extraia o nome do canal (ex.: "ESPN", "SBT", "Globo SP", "Combate").
+1. Extraia o nome do canal (ex.: "ESPN", "SBT", "Globo SP", "Combate", "BandSports").
+   - IMPORTANTE: Se houver canais repetidos ou alternativos na lista, nomeie as opções alternativas adicionando o sufixo "Alt 2", "Alt 3", etc. ao nome (exemplo: primeiro "ESPN", segundo "ESPN Alt 2", terceiro "ESPN Alt 3"; primeiro "BandSports", segundo "BandSports Alt 2").
 2. Identifique a URL principal válida (começando com http:// ou https://).
 3. Se houver link backup ou alternativo, preencha em "url_backup", senão deixe vazio "".
 4. Sugira a categoria quando identificável (ex.: "Esportes", "Abertos", "Filmes", "Notícias", etc.).
-5. Crie um "suggested_slug" normalizado (apenas letras minúsculas, números, sem acentos, ex.: "espn", "espn-2", "sbt").
+5. Crie um "suggested_slug" normalizado em camelCase: a primeira palavra em minúsculas e cada palavra subsequente começando com letra maiúscula, SEM hifens, underlines ou acentos.
+   - Exemplos de slugs: "espn", "bandSports", "globoSp", "telecinePremium".
+   - Em caso de canais repetidos/alternativos, o slug DEVE seguir o padrão camelCase com "Alt2", "Alt3" (ex.: "espnAlt2", "espnAlt3", "bandSportsAlt2"). NUNCA use hifens como "espn-alt-2".
 6. Identifique o tipo de player ("player_type"):
    - Se a URL contiver ou terminar com .m3u8 ou .mpd (streaming direto HLS ou MPEG-DASH), defina "player_type": "native".
    - Se a URL for um link comum de página/player (ex.: .php, .html, embed, portal que já possui player), defina "player_type": "iframe".
@@ -389,7 +489,7 @@ Regras obrigatórias:
       "url": "https://...",
       "url_backup": "",
       "category": "Esportes",
-      "suggested_slug": "nome-do-canal",
+      "suggested_slug": "nomeDoCanal",
       "player_type": "native",
       "drm_key": ""
     }

@@ -58,7 +58,7 @@ if (is_post()) {
             if (!$parsedChannels && !$errors) {
                 $errors[] = 'Nenhum link ou canal válido pôde ser extraído. Verifique o formato dos links informados.';
             } else {
-                // Monta o preview e simula a regra de slugs (op2, op3...)
+                // Monta o preview e simula a regra de nomes e slugs alternativos (ESPN Alt 2 -> espnAlt2)
                 $reserved = [];
                 foreach ($parsedChannels as $item) {
                     $name = trim((string)($item['name'] ?? ''));
@@ -75,16 +75,14 @@ if (is_post()) {
                         $name = 'Canal ' . (count($previewItems) + 1);
                     }
 
-                    if ($baseSlug === '') {
-                        $baseSlug = slugify($name);
-                    } else {
-                        $baseSlug = slugify($baseSlug);
-                    }
+                    $resolution = resolve_channel_duplicate($pdo, $name, $baseSlug, null, $reserved);
+                    $finalName = $resolution['name'];
+                    $finalSlug = $resolution['slug'];
+                    $isAlt = $resolution['is_alt'];
+                    $baseSlugClean = $resolution['base_slug'];
 
-                    $finalSlug = resolve_unique_channel_slug($pdo, $baseSlug, null, $reserved);
                     $reserved[] = $finalSlug;
 
-                    $isAlt = ($finalSlug !== $baseSlug);
                     if ($isAlt) {
                         $stats['alternatives']++;
                     } else {
@@ -99,9 +97,9 @@ if (is_post()) {
                     $drmKey = trim((string)($item['drm_key'] ?? ''));
 
                     $previewItems[] = [
-                        'name'        => $name,
+                        'name'        => $finalName,
                         'slug'        => $finalSlug,
-                        'base_slug'   => $baseSlug,
+                        'base_slug'   => $baseSlugClean,
                         'is_alt'      => $isAlt,
                         'url'         => $url,
                         'url_backup'  => $urlBackup,
@@ -158,8 +156,9 @@ admin_header('Importar Canais em Massa', $user);
                 <h2 class="section-title">Importação de Links e Canais</h2>
                 <p class="hint">
                     Cole uma lista de canais ou envie um arquivo <code>.txt</code>.
-                    Se o canal já existir no banco (ex.: <code>espn</code> ou <code>espn2</code>),
-                    serão criadas automaticamente as opções sequenciais <code>espnop2</code>, <code>espnop3</code>, <code>espn2op2</code>...
+                    Se o canal já existir no banco (ex.: <code>ESPN</code> ou <code>BandSports</code>),
+                    serão criadas automaticamente as opções com nome sequencial (ex.: <code>ESPN Alt 2</code>, <code>BandSports Alt 2</code>)
+                    e slug em camelCase (<code>espnAlt2</code>, <code>bandSportsAlt2</code>).
                 </p>
             </div>
             <span class="badge <?= $openrouterReady ? 'badge-ok' : 'badge-off' ?>">
@@ -204,12 +203,12 @@ http://site.com/canal.php?id=sbt"></textarea>
     </div>
 
     <div class="card mt-16">
-        <h3 style="font-size:15px;margin-bottom:8px;">💡 Como funciona a regra de slugs duplicados:</h3>
+        <h3 style="font-size:15px;margin-bottom:8px;">💡 Como funciona a regra de canais repetidos:</h3>
         <ul style="margin:0;padding-left:20px;color:var(--muted);font-size:14px;line-height:1.7;">
-            <li>Se o canal <code>espn</code> ainda não existir no banco, ele é cadastrado com slug <code>espn</code>.</li>
-            <li>Se você cadastrar outro link de <code>espn</code>, o slug gerado será <code>espnop2</code>.</li>
-            <li>Um terceiro link para <code>espn</code> virará <code>espnop3</code>, e assim por diante.</li>
-            <li>Para canais numerados como <code>espn2</code>, serão adicionadas as opções <code>espn2op2</code>, <code>espn2op3</code>...</li>
+            <li>Se o canal <code>ESPN</code> ainda não existir no banco, ele é cadastrado com nome <code>ESPN</code> e slug <code>espn</code>.</li>
+            <li>Se você cadastrar outro link de <code>ESPN</code>, o nome vira <strong><code>ESPN Alt 2</code></strong> e o slug gerado será <strong><code>espnAlt2</code></strong>.</li>
+            <li>Um terceiro link para <code>ESPN</code> virará <strong><code>ESPN Alt 3</code></strong> com slug <strong><code>espnAlt3</code></strong>, e assim por diante.</li>
+            <li>Para canais compostos como <code>BandSports</code>, o slug segue camelCase: <strong><code>bandSports</code></strong> e alternativas <strong><code>bandSportsAlt2</code></strong>, <strong><code>bandSportsAlt3</code></strong>...</li>
         </ul>
     </div>
 
@@ -220,13 +219,13 @@ http://site.com/canal.php?id=sbt"></textarea>
                 <h2 class="section-title">Prévia da Importação</h2>
                 <p class="hint">
                     Foram identificados <strong><?= count($previewItems) ?> canais</strong>.
-                    Revise os slugs calculados antes de confirmar a gravação.
+                    Revise os nomes e slugs calculados antes de confirmar a gravação.
                 </p>
             </div>
             <div style="display:flex;gap:8px;">
                 <span class="badge badge-ok"><?= $stats['new'] ?> Novos</span>
                 <?php if ($stats['alternatives'] > 0): ?>
-                    <span class="badge badge-warn"><?= $stats['alternatives'] ?> Alternativas (op2, op3...)</span>
+                    <span class="badge badge-warn"><?= $stats['alternatives'] ?> Alternativas (Alt 2, Alt 3...)</span>
                 <?php endif; ?>
             </div>
         </div>

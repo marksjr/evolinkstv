@@ -66,16 +66,20 @@ document.addEventListener('submit', (event) => {
         slugInput.dataset.touched = '1';
     }
 
+    function toCamelSlug(str) {
+        const clean = str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const altMatch = clean.match(/^(.*?)(?:[\s\-_]*(?:alt|op)[\s\-_]*(\d+))$/i);
+        if (altMatch) {
+            return toCamelSlug(altMatch[1]) + 'Alt' + altMatch[2];
+        }
+        const parts = clean.split(/(?<=[a-z0-9])(?=[A-Z])|[^a-zA-Z0-9]+/).filter(Boolean);
+        if (!parts.length) return '';
+        return parts.map((p, idx) => idx === 0 ? p.toLowerCase() : (p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())).join('').slice(0, 64);
+    }
+
     nameInput.addEventListener('input', () => {
         if (slugInput.dataset.touched === '1') return;
-
-        slugInput.value = nameInput.value
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '')
-            .slice(0, 64);
+        slugInput.value = toCamelSlug(nameInput.value);
     });
 
     slugInput.addEventListener('input', () => {

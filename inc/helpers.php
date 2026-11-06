@@ -66,7 +66,38 @@ function input(string $key, string $default = ''): string
 
 function valid_slug(string $slug): bool
 {
-    return (bool)preg_match('/^[a-z0-9](?:[a-z0-9_-]{0,62}[a-z0-9])?$/', $slug);
+    return (bool)preg_match('/^[a-zA-Z0-9](?:[a-zA-Z0-9_-]{0,62}[a-zA-Z0-9])?$/', $slug);
+}
+
+function slugify_camel(string $name): string
+{
+    $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name);
+    $str = $ascii !== false ? $ascii : $name;
+
+    // Se já tiver Alt ou op com número no final (ex: espn-alt-2, ESPN Alt 2, espnop2), normaliza a base e o sufixo
+    if (preg_match('/^(.*?)(?:[\s\-_]*(?:alt|op)[\s\-_]*(\d+))$/i', $str, $m)) {
+        $base = trim($m[1]);
+        $num = (int)$m[2];
+        return slugify_camel($base) . 'Alt' . $num;
+    }
+
+    // Divide em palavras respeitando limites camelCase existentes (ex: BandSports -> Band, Sports) e caracteres não alfanuméricos
+    $parts = preg_split('/(?<=[a-z0-9])(?=[A-Z])|[^a-zA-Z0-9]+/', $str, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    if (!$parts) {
+        return 'canal';
+    }
+
+    $slug = '';
+    foreach ($parts as $idx => $part) {
+        if ($idx === 0) {
+            $slug .= strtolower($part);
+        } else {
+            $slug .= ucfirst(strtolower($part));
+        }
+    }
+
+    $slug = substr($slug, 0, 64);
+    return $slug !== '' ? $slug : 'canal';
 }
 
 function slugify(string $name): string
