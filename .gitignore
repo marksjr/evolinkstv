@@ -1,0 +1,27 @@
+# Arquivos de Configuração Sensíveis (NUNCA SUBIR PARA O GITHUB)
+config.php
+install.lock
+
+# Pacotes compactados e backups
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z
+
+# Cache e logs
+cache/*
+!cache/.htaccess
+!cache/.gitignore
+*.log
+
+# Scripts de testes locais e rascunhos de desenvolvimento
+scratch/
+
+# IDEs e Sistema Operacional
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.bak

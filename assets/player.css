@@ -1,0 +1,151 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background: #000;
+    overflow: hidden;
+}
+
+#player-root {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+}
+
+#player-root iframe,
+#native-player-container,
+#player-root [data-player],
+#player-root .clappr-player-wrapper,
+#player-root .container[data-container],
+#player-root video {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    border: 0;
+    background: #000;
+    position: absolute;
+    inset: 0;
+}
+
+#player-ads-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    pointer-events: auto;
+    z-index: 8;
+}
+
+.loading {
+    color: #9aa4b2;
+    font: 14px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    letter-spacing: 0.02em;
+}
+
+.loading::after {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-left: 8px;
+    border-radius: 50%;
+    background: #ff4b3a;
+    animation: pulse 1s infinite ease-in-out;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.25; transform: scale(0.85); }
+    50% { opacity: 1; transform: scale(1); }
+}
+
+.error,
+.blocker {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.94);
+    color: #f2f5f8;
+    font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.error {
+    color: #ffb3b3;
+}
+
+.blocker h2 {
+    margin: 0;
+    font-size: 20px;
+    line-height: 1.25;
+}
+
+.blocker p {
+    max-width: 380px;
+    margin: 0;
+    color: #9aa4b2;
+}
+
+.blocker button {
+    margin-top: 8px;
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #ff4b3a;
+    color: #fff;
+    font: 600 14px ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    cursor: pointer;
+}
+
+.blocker button:hover {
+    background: #ff6353;
+}
+
+.watermark {
+    position: fixed;
+    right: 10px;
+    bottom: 8px;
+    z-index: 5;
+    pointer-events: none;
+    color: rgba(255, 255, 255, 0.5);
+    font: 12px/1 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    text-shadow: 0 1px 2px #000;
+}
+
+/* Isca de adblock: fora da tela, mas com dimensões reais. */
+.adsbox {
+    position: absolute;
+    left: -10000px;
+    top: -10000px;
+    width: 2px;
+    height: 2px;
+    overflow: hidden;
+}
+
+.noscript {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: #000;
+    color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loading::after {
+        animation: none;
+    }
+}
