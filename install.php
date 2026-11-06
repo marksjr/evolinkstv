@@ -245,13 +245,15 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !$isLocked) {
 
             // 5. Cadastra o usuário administrador (com transação atômica)
             $pdo->beginTransaction();
-            $pdo->exec('TRUNCATE TABLE `users`');
+            $pdo->exec('DELETE FROM `users`');
             $adminStmt = $pdo->prepare('INSERT INTO `users` (`username`, `password_hash`, `must_change_password`) VALUES (?, ?, 0)');
             $adminStmt->execute([
                 $adminUser,
                 password_hash($adminPass, PASSWORD_DEFAULT),
             ]);
-            $pdo->commit();
+            if ($pdo->inTransaction()) {
+                $pdo->commit();
+            }
 
             // 6. Gera chave criptográfica forte de 64 caracteres hexadecimais (256 bits)
             $appKey = bin2hex(random_bytes(32));
