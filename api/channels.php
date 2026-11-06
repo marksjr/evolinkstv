@@ -69,10 +69,10 @@ try {
     $baseUrl = rtrim(app_base_url(), '/') . '/';
 
     /**
-     * Função auxiliar para desmembrar slug em root e número de opção
+     * Função auxiliar para desmembrar slug em root e número de opção (ex: espnAlt2, espnop2)
      */
     $parseSlugOption = static function (string $slug): array {
-        if (preg_match('/^(.*?)op(\d+)$/i', $slug, $matches)) {
+        if (preg_match('/^(.*?)(?:Alt|op)(\d+)$/i', $slug, $matches)) {
             return [
                 'root' => strtolower($matches[1]),
                 'option' => (int)$matches[2]
@@ -288,6 +288,7 @@ try {
                             $matchedStreams[] = [
                                 'title' => $optionTitle,
                                 'title_raw' => $baseDisplayName,
+                                'channel_name' => $opt['name'],
                                 'link' => $opt['embed_url'],
                                 'slug' => $opt['slug'],
                                 'root_slug' => $opt['root_slug'],
